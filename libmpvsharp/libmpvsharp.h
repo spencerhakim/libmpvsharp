@@ -41,5 +41,8 @@ namespace libmpvsharp {
         void Play();
         void Pause();
         void Stop();
+
+    private:
+        void EventLoop();
     };
 }

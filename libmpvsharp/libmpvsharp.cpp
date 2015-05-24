@@ -6,6 +6,7 @@ using namespace System;
 using namespace System::IO;
 using namespace System::Runtime::InteropServices;
 using namespace System::Text;
+using namespace System::Threading::Tasks;
 using namespace libmpvsharp;
 
 #define MPV_ERROR_CHECK(x)                      \
@@ -69,6 +70,8 @@ void Mpv::Initialize()
 
     MPV_ERROR_CHECK( mpv_initialize(m_ctx) );
     m_inited = true;
+
+    Task::Run( gcnew Action(this, &Mpv::EventLoop) );
 }
 
 void Mpv::LoadFile(String^ uri)
@@ -113,4 +116,20 @@ void Mpv::Stop()
         NULL
     };
     MPV_ERROR_CHECK( mpv_command_async(m_ctx, 0, args) );
+}
+
+void Mpv::EventLoop()
+{
+    while( m_ctx )
+    {
+        try
+        {
+            //Don't care about events right now, so just eat them
+            mpv_wait_event(m_ctx, 0);
+        }
+        catch(...)
+        {
+            //Make sure the loop doesn't crash
+        }
+    }
 }
