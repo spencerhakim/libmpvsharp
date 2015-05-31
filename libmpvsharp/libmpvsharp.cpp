@@ -125,7 +125,7 @@ void Mpv::EventLoop()
         try
         {
             //Don't care about events right now, so just eat them
-            mpv_wait_event(m_ctx, 0);
+            mpv_wait_event(m_ctx, -1);
         }
         catch(...)
         {
