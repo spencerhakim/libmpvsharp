@@ -49,13 +49,29 @@ extern "C" {
  * 2) Using mpv as a library with mpv_create(). This basically allows embedding
  *    mpv in other applications.
  *
+ * Documentation
+ * -------------
+ *
+ * The libmpv C API is documented directly in this header. Note that most
+ * actual interaction with this player is done through
+ * options/commands/properties, which can be accessed through this API.
+ * Essentially everything is done with them, including loading a file,
+ * retrieving playback progress, and so on.
+ *
+ * These are documented elsewhere:
+ *      * http://mpv.io/manual/master/#options
+ *      * http://mpv.io/manual/master/#list-of-input-commands
+ *      * http://mpv.io/manual/master/#properties
+ *
+ * You can also look at the examples in DOCS/client_api_examples/.
+ *
  * Event loop
  * ----------
  *
  * In general, the API user should run an event loop in order to receive events.
- * This even loop should call mpv_wait_event(), which will return once a new
- * mpv client API is available. It should also be possible to integrate client
- * API usage in other event loops (e.g. GUI toolkits) with the
+ * This event loop should call mpv_wait_event(), which will return once a new
+ * mpv client API is available. It is also possible to integrate client API
+ * usage in other event loops (e.g. GUI toolkits) with the
  * mpv_set_wakeup_callback() function, and then polling for events by calling
  * mpv_wait_event() with a 0 timeout.
  *
@@ -198,7 +214,7 @@ extern "C" {
  * relational operators (<, >, <=, >=).
  */
 #define MPV_MAKE_VERSION(major, minor) (((major) << 16) | (minor) | 0UL)
-#define MPV_CLIENT_API_VERSION MPV_MAKE_VERSION(1, 19)
+#define MPV_CLIENT_API_VERSION MPV_MAKE_VERSION(1, 20)
 
 /**
  * Return the MPV_CLIENT_API_VERSION the mpv source has been compiled with.
@@ -387,7 +403,10 @@ const char *mpv_client_name(mpv_handle *ctx);
  * client handle. (Whether concurrent access is definitely allowed or not has
  * yet to be decided.)
  *
- * @return a new mpv client API handle
+ * @return a new mpv client API handle. Returns NULL on error. Currently, this
+ *         can happen in the following situations:
+ *         - out of memory
+ *         - LC_NUMERIC is not set to "C" (see general remarks)
  */
 mpv_handle *mpv_create(void);
 
@@ -586,7 +605,7 @@ typedef enum mpv_format {
      * Example for writing:
      *
      *     int flag = 1;
-     *     mpv_set_property(ctx, "property", MPV_FORMAT_STRING, &flag);
+     *     mpv_set_property(ctx, "property", MPV_FORMAT_FLAG, &flag);
      */
     MPV_FORMAT_FLAG             = 3,
     /**
